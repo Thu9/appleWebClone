@@ -1,0 +1,34 @@
+.main-message {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 35vh;
+  margin: 5px 0;
+  height: 3em;
+  font-size: 2.5rem;
+  opacity: 0;
+}
+
+#scrollSection0 .sticky-elem,
+#scrollSection1 .sticky-elem,
+#scrollSection2 .sticky-elem,
+#scrollSection3 .sticky-elem {
+  position: fixed;
+  width: 100%;
+  display: none;
+}
+
+#show-scene-0 #scrollSection0 .sticky-elem,
+#show-scene-1 #scrollSection1 .sticky-elem,
+#show-scene-2 #scrollSection2 .sticky-elem,
+#show-scene-3 #scrollSection3 .sticky-elem {
+  display: block;
+}
+
+#scrollSection0,
+#scrollSection1,
+#scrollSection2,
+#scrollSection3 {
+  border: solid red 1px;
+}
