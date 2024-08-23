@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef } from "react";
 import { sceneInfo } from "./Animation";
 import "./App.css";
+import SmoothScroll from "./components/SmoothScroll";
 
 function App() {
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -613,6 +614,7 @@ function App() {
       <section id="scrollSection0" ref={scrollSection0} className="pt-[50vh]">
         <h1 className="text-[4rem] text-center lg:text-[9vw] font-bold relative z-[5] top-[-10vh]">
           AirMug Pro
+          <SmoothScroll />
         </h1>
         <div className="sticky-elem top-0 h-full">
           <canvas
