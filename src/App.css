@@ -26,9 +26,13 @@
   display: block;
 }
 
-#scrollSection0,
-#scrollSection1,
-#scrollSection2,
-#scrollSection3 {
-  border: solid red 1px;
+.image-blend-canvas.sticky {
+  position: fixed;
+}
+
+.local-nav-sticky .local-nav {
+  position: fixed;
+  top: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: saturate(180%) blur(15px);
 }

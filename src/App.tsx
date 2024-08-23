@@ -1,25 +1,81 @@
-import { useEffect, useRef, useState } from "react";
-import "./App.css";
+import { memo, useEffect, useRef } from "react";
 import { sceneInfo } from "./Animation";
-import Canvas from "./components/Canvas";
+import "./App.css";
 
-export default function App() {
+function App() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const scrollSection0 = useRef<HTMLElement>(null);
   const scrollSection1 = useRef<HTMLElement>(null);
   const scrollSection2 = useRef<HTMLElement>(null);
   const scrollSection3 = useRef<HTMLElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef0 = useRef<HTMLCanvasElement>(null);
+  const canvasRef2 = useRef<HTMLCanvasElement>(null);
+  const canvasRef3 = useRef<HTMLCanvasElement>(null);
+  const canvasCaptionRef = useRef<HTMLParagraphElement>(null);
 
   let yOffset = 0;
   let prevScrollHeight = 0;
   let currentScene = 0;
-  const [enterNewScene, setEnterNewScene] = useState(false);
+  let enterNewScene = false;
 
   useEffect(() => {
     setLayout();
-    // scrollTo({ top: 0 });
+    setCanvasImages();
+    scrollTo({ top: 0 });
   }, []);
+
+  const setCanvasImages = () => {
+    let defaultImg = new Image();
+    defaultImg.src = "src/assets/video/001/IMG_6727.JPG";
+    defaultImg.onload = () => {
+      canvasRef0.current &&
+        canvasRef0.current.getContext("2d")?.drawImage(defaultImg, 0, 0);
+    };
+
+    sceneInfo[0].objs!.videosImages = [];
+    for (let i = 0; i < sceneInfo[0].values.videoImagesCount; i++) {
+      let imgElem = new Image();
+      imgElem.src = `src/assets/video/001/IMG_${6727 + i}.JPG`;
+      sceneInfo[0].objs!.videosImages.push(imgElem);
+      imgElem.onload;
+
+      imgElem.onerror = (err) => {
+        console.log(err);
+      };
+    }
+
+    sceneInfo[2].objs!.videosImages = [];
+    for (let i = 0; i < sceneInfo[2].values.videoImagesCount; i++) {
+      let imgElem2 = new Image();
+      imgElem2.src = `src/assets/video/002/IMG_${7027 + i}.JPG`;
+      sceneInfo[2].objs!.videosImages.push(imgElem2);
+      imgElem2.onload;
+
+      imgElem2.onerror = (err) => {
+        console.log(err);
+      };
+    }
+
+    sceneInfo[3].objs!.images = [];
+    for (let i = 0; i < sceneInfo[3].objs!.imagesPath!.length; i++) {
+      let imgElem3 = new Image();
+      imgElem3.src = sceneInfo[3].objs!.imagesPath![i];
+      sceneInfo[3].objs!.images.push(imgElem3);
+      imgElem3.onload;
+
+      imgElem3.onerror = (err) => {
+        console.log(err);
+      };
+    }
+  };
+
+  const checkMenu = () => {
+    if (yOffset > 44) {
+      document.body.classList.add("local-nav-sticky");
+    } else {
+      document.body.classList.remove("local-nav-sticky");
+    }
+  };
 
   const setLayout = () => {
     for (let i = 0; i < sceneInfo.length; i++) {
@@ -45,32 +101,68 @@ export default function App() {
         break;
       }
     }
-
     sceneRef.current?.setAttribute("id", `show-scene-${currentScene}`);
+
+    const heightRatio = window.innerHeight / 1080;
+    canvasRef0.current &&
+      (canvasRef0.current.style.transform = `translate3d(-50%, -50%, 0) scale(${heightRatio})`);
+    canvasRef2.current &&
+      (canvasRef2.current.style.transform = `translate3d(-50%, -50%, 0) scale(${heightRatio})`);
   };
 
-  const scrollLoop = () => {
-    setEnterNewScene(false);
-    const prevScene = currentScene;
+  const scrollLoop = async () => {
+    enterNewScene = false;
     prevScrollHeight = 0;
+
     for (let i = 0; i < currentScene; i++) {
       prevScrollHeight += sceneInfo[i].scrollHeight;
     }
 
     if (yOffset > prevScrollHeight + sceneInfo[currentScene].scrollHeight) {
+      enterNewScene = true;
       currentScene++;
-
       sceneRef.current?.setAttribute("id", `show-scene-${currentScene}`);
+      return;
     }
 
     if (yOffset < prevScrollHeight) {
+      enterNewScene = true;
       if (currentScene === 0) return;
       currentScene--;
       sceneRef.current?.setAttribute("id", `show-scene-${currentScene}`);
+      return;
     }
     if (enterNewScene) return;
 
-    playAnimation(prevScene);
+    playAnimation();
+  };
+
+  const loop = () => {
+    if (!enterNewScene) {
+      if (currentScene === 0 || currentScene === 2) {
+        const values = sceneInfo[currentScene].values;
+        const objs = sceneInfo[currentScene].objs;
+        let currentYOffset = yOffset - prevScrollHeight;
+        let sequence = Math.round(
+          calcValues(values.imageSequence, currentYOffset)
+        );
+
+        if (objs!.videosImages![sequence]) {
+          if (currentScene === 0) {
+            canvasRef0.current &&
+              canvasRef0.current
+                .getContext("2d")
+                ?.drawImage(sceneInfo[0].objs!.videosImages![sequence], 0, 0);
+          }
+          if (currentScene === 2) {
+            canvasRef2.current &&
+              canvasRef2.current
+                .getContext("2d")
+                ?.drawImage(sceneInfo[2].objs!.videosImages![sequence], 0, 0);
+          }
+        }
+      }
+    }
   };
 
   const calcValues = (values: any, currentYOffset: number) => {
@@ -100,20 +192,23 @@ export default function App() {
     } else {
       rv = scrollRatio * (values[1] - values[0]) + values[0];
     }
-
-    return String(rv);
+    return rv;
   };
 
-  const playAnimation = (prevScene?: number) => {
-    let currentYOffset =
-      prevScene != currentScene ? 0 : yOffset - prevScrollHeight;
-
+  const playAnimation = () => {
+    let currentYOffset = yOffset - prevScrollHeight;
     const values = sceneInfo[currentScene].values!;
     const scrollHeight = sceneInfo[currentScene].scrollHeight;
     const scrollRatio = currentYOffset / scrollHeight;
 
     switch (currentScene) {
       case 0:
+        canvasRef0.current &&
+          (canvasRef0.current.style.opacity = calcValues(
+            values.canvas_opacity,
+            currentYOffset
+          ));
+
         const messageA = scrollSection0.current?.querySelector(
           ".main-message.a"
         ) as HTMLDivElement;
@@ -190,10 +285,6 @@ export default function App() {
           )}%, 0)`;
         }
 
-        break;
-
-      case 1:
-        calcValues(0, currentYOffset);
         break;
 
       case 2:
@@ -273,32 +364,263 @@ export default function App() {
           )})`;
         }
 
+        canvasRef2.current &&
+          (canvasRef2.current.style.opacity = calcValues(
+            scrollRatio <= 0.5
+              ? values.canvas_opacity_in
+              : values.canvas_opacity_out,
+            currentYOffset
+          ));
+
+        // section3 미리 렌더링
+        if (scrollRatio > 0.9) {
+          if (!canvasRef3.current) return;
+
+          const values = sceneInfo[3].values!;
+          const scrollHeight = sceneInfo[3].scrollHeight;
+          const widthRatio = window.innerWidth / canvasRef3.current.width;
+          const heightRatio = window.innerHeight / canvasRef3.current.height;
+          let canvasScaleRatio;
+
+          if (widthRatio <= heightRatio) {
+            canvasScaleRatio = heightRatio;
+          } else {
+            canvasScaleRatio = widthRatio;
+          }
+
+          canvasRef3.current.style.transform = `scale(${canvasScaleRatio})`;
+          canvasRef3.current.getContext("2d")!.fillStyle = "white";
+          canvasRef3.current
+            .getContext("2d")
+            ?.drawImage(sceneInfo[3].objs!.images![0], 0, 0);
+
+          const recalcInnerWidth = document.body.offsetWidth / canvasScaleRatio;
+
+          const whiteRectWidth = recalcInnerWidth * 0.15;
+          values.rect1X[0] = (canvasRef3.current.width - recalcInnerWidth) / 2;
+          values.rect1X[1] = values.rect1X[0] - whiteRectWidth;
+          values.rect2X[0] =
+            values.rect1X[0] + recalcInnerWidth - whiteRectWidth;
+          values.rect2X[1] = values.rect2X[0] + whiteRectWidth;
+
+          canvasRef3.current
+            .getContext("2d")
+            ?.fillRect(
+              values.rect1X[0],
+              0,
+              whiteRectWidth,
+              canvasRef3.current.height
+            );
+          canvasRef3.current
+            .getContext("2d")
+            ?.fillRect(
+              values.rect2X[0],
+              0,
+              whiteRectWidth,
+              canvasRef3.current.height
+            );
+        }
+
         break;
 
       case 3:
+        if (!canvasRef3.current) return;
+        let step = 0;
+
+        const widthRatio = window.innerWidth / canvasRef3.current.width;
+        const heightRatio = window.innerHeight / canvasRef3.current.height;
+        let canvasScaleRatio;
+
+        if (widthRatio <= heightRatio) {
+          canvasScaleRatio = heightRatio;
+        } else {
+          canvasScaleRatio = widthRatio;
+        }
+
+        canvasRef3.current.style.transform = `scale(${canvasScaleRatio})`;
+        canvasRef3.current.getContext("2d")!.fillStyle = "white";
+        canvasRef3.current
+          .getContext("2d")
+          ?.drawImage(sceneInfo[3].objs!.images![0], 0, 0);
+
+        if (!values.rectStartY) {
+          values.rectStartY =
+            canvasRef3.current.offsetTop +
+            (canvasRef3.current.height -
+              canvasRef3.current.height * canvasScaleRatio) /
+              2;
+
+          values.rect1X[2].start = window.innerHeight / 2 / scrollHeight; // 0.1;
+          values.rect2X[2].start = window.innerHeight / 2 / scrollHeight;
+          values.rect1X[2].end = values.rectStartY / scrollHeight;
+          values.rect2X[2].end = values.rectStartY / scrollHeight;
+        }
+
+        const recalcInnerWidth = document.body.offsetWidth / canvasScaleRatio;
+
+        const whiteRectWidth = recalcInnerWidth * 0.15;
+        values.rect1X[0] = (canvasRef3.current.width - recalcInnerWidth) / 2;
+        values.rect1X[1] = values.rect1X[0] - whiteRectWidth;
+        values.rect2X[0] = values.rect1X[0] + recalcInnerWidth - whiteRectWidth;
+        values.rect2X[1] = values.rect2X[0] + whiteRectWidth;
+
+        canvasRef3.current
+          .getContext("2d")
+          ?.fillRect(
+            calcValues(values.rect1X, currentYOffset),
+            0,
+            whiteRectWidth,
+            canvasRef3.current.height
+          );
+        canvasRef3.current
+          .getContext("2d")
+          ?.fillRect(
+            calcValues(values.rect2X, currentYOffset),
+            0,
+            whiteRectWidth,
+            canvasRef3.current.height
+          );
+
+        if (scrollRatio < values.rect1X[2].end) {
+          step = 1;
+          canvasRef3.current.classList.remove("sticky");
+        } else {
+          step = 2;
+
+          values.blendHeight[0] = 0;
+          values.blendHeight[1] = canvasRef3.current.height;
+          values.blendHeight[2].start = values.rect1X[2].end;
+          values.blendHeight[2].end = values.blendHeight[2].start + 0.2;
+
+          let blendHeight = calcValues(values.blendHeight, currentYOffset);
+          canvasRef3.current
+            .getContext("2d")
+            ?.drawImage(
+              sceneInfo[3].objs!.images![1],
+              0,
+              canvasRef3.current.height - blendHeight,
+              canvasRef3.current.width,
+              blendHeight,
+              0,
+              canvasRef3.current.height - blendHeight,
+              canvasRef3.current.width,
+              blendHeight
+            );
+
+          canvasRef3.current.classList.add("sticky");
+          canvasRef3.current.style.top = `${
+            -(
+              canvasRef3.current.height -
+              canvasRef3.current.height * canvasScaleRatio
+            ) / 2
+          }px`;
+
+          if (scrollRatio > values.blendHeight[2].end) {
+            values.canvas_scale[0] = canvasScaleRatio;
+            values.canvas_scale[1] =
+              document.body.offsetWidth / (1.5 * canvasRef3.current.width);
+            values.canvas_scale[2].start = values.blendHeight[2].end;
+            values.canvas_scale[2].end = values.canvas_scale[2].start + 0.2;
+
+            canvasRef3.current.style.transform = `scale(${calcValues(
+              values.canvas_scale,
+              currentYOffset
+            )})`;
+            canvasRef3.current.style.marginTop = "0";
+          }
+
+          if (
+            scrollRatio > values.canvas_scale[2].end &&
+            values.canvas_scale[2].end > 0
+          ) {
+            canvasRef3.current.classList.remove("sticky");
+            canvasRef3.current.style.marginTop = `${scrollHeight * 0.4}px`;
+
+            values.canvasCaption_opacity[2].start = values.canvas_scale[2].end;
+            values.canvasCaption_opacity[2].end =
+              values.canvasCaption_opacity[2].start + 0.1;
+            values.canvasCaption_translateY[2].start =
+              values.canvas_scale[2].end;
+            values.canvasCaption_translateY[2].end =
+              values.canvasCaption_translateY[2].start + 0.1;
+
+            if (!canvasCaptionRef.current) return;
+            canvasCaptionRef.current.style.opacity = calcValues(
+              values.canvasCaption_opacity,
+              currentYOffset
+            );
+            canvasCaptionRef.current.style.transform = `translate3d(0, ${calcValues(
+              values.canvasCaption_translateY,
+              currentYOffset
+            )}%, 0)`;
+          }
+        }
+
         break;
     }
   };
 
-  window.addEventListener("resize", setLayout);
   window.addEventListener("scroll", () => {
     yOffset = window.scrollY;
     scrollLoop();
+    loop();
+    checkMenu();
   });
+  window.addEventListener("resize", setLayout);
+  // window.addEventListener("load", () => {
+  //   setLayout();
+  // });
 
   return (
     <div ref={sceneRef}>
-      <nav>
+      {/* <nav>
         <div className="absolute top-0 left-0 w-full h-[48px] border-b-[1px] border-black text-center content-center text-[24px] font-semibold z-10">
           Header
         </div>
+      </nav> */}
+      <nav className="absolute top-0 left-0 z-10 w-full px-[1rem] h-[44px]">
+        <div className="flex items-center max-w-[1000px] h-full mx-auto justify-between">
+          <a href="#" className="global-nav-item">
+            Rooms
+          </a>
+          <a href="#" className="global-nav-item">
+            Ideas
+          </a>
+          <a href="#" className="global-nav-item">
+            Stores
+          </a>
+          <a href="#" className="global-nav-item">
+            Contact
+          </a>
+        </div>
+      </nav>
+      <nav className="local-nav absolute top-[45px] left-0 z-[11] w-full h-[52px] px-[1rem] border-b-[1px] border-[#ddd]">
+        <div className="flex items-center max-w-[1000px] h-full mx-auto text-[0.8rem]">
+          <a href="#" className="mr-auto text-[1.4rem] font-bold">
+            AirMug Pro
+          </a>
+          <a href="#" className="ml-[2em]">
+            개요
+          </a>
+          <a href="#" className="ml-[2em]">
+            제품사양
+          </a>
+          <a href="#" className="ml-[2em]">
+            구입하기
+          </a>
+        </div>
       </nav>
       <section id="scrollSection0" ref={scrollSection0} className="pt-[50vh]">
-        <h1 className="text-[4rem] text-center lg:text-[9vw] font-bold">
+        <h1 className="text-[4rem] text-center lg:text-[9vw] font-bold relative z-[5] top-[-10vh]">
           AirMug Pro
         </h1>
-        <div className="sticky-elem top-0 bg-gray-300">
-          {/* <Canvas ref={canvasRef} /> */}
+        <div className="sticky-elem top-0 h-full">
+          <canvas
+            ref={canvasRef0}
+            width={1920}
+            height={1080}
+            className="absolute top-1/2 left-1/2"
+          />
         </div>
         <div className="sticky-elem main-message a lg:text-[4vw]">
           <p className="font-bold text-center leading-[1.2]">
@@ -355,6 +677,14 @@ export default function App() {
         </p>
       </section>
       <section id="scrollSection2" ref={scrollSection2} className="pt-[50vh]">
+        <div className="sticky-elem top-0 h-full">
+          <canvas
+            ref={canvasRef2}
+            width={1920}
+            height={1080}
+            className="absolute top-1/2 left-1/2"
+          />
+        </div>
         <div className="a sticky-elem main-message text-[3.5rem] lg:text-[6vw]">
           <p className="font-bold text-center leading-[1.2]">
             <small className="block mb-[0.5em] text-[1.2rem] lg:text-[1.5vw]">
@@ -363,7 +693,7 @@ export default function App() {
             입과 하나 되다
           </p>
         </div>
-        <div className="b sticky-elem !w-[50%] font-bold top-[0%] left-[40%] lg:!w-[20%] lg:top-[20%] lg:left-[53%]">
+        <div className="b sticky-elem !w-[50%] font-bold top-[0%] left-[40%] lg:!w-[20%] lg:top-[20%] lg:left-[53%] opacity-0">
           <p>
             편안한 목넘김을 완성하는 디테일한 여러 구성 요소들, 우리는 이를
             하나하나 새롭게 살피고 재구성하는 과정을 거쳐 새로운 수준의 머그,
@@ -372,7 +702,7 @@ export default function App() {
           </p>
           <div className="pin w-[1px] h-[100px] bg-custom-black"></div>
         </div>
-        <div className="c sticky-elem !w-[50%] font-bold top-[15%] left-[45%] lg:!w-[20%] lg:left-[55%]">
+        <div className="c sticky-elem !w-[50%] font-bold top-[15%] left-[45%] lg:!w-[20%] lg:left-[55%] opacity-0">
           <p>
             디자인 앤 퀄리티 오브 스웨덴,
             <br />
@@ -381,19 +711,52 @@ export default function App() {
           <div className="pin w-[1px] h-[100px] bg-custom-black"></div>
         </div>
       </section>
-      <section id="scrollSection3" ref={scrollSection3} className="pt-[50vh]">
-        <p className="px-[1rem] text-[2rem] text-custom-gray max-w-[1000px] mx-auto lg:text-[4vw]">
+      <section
+        id="scrollSection3"
+        ref={scrollSection3}
+        className="pt-[50vh] flex flex-col items-center relative"
+      >
+        <p className="px-[1rem] text-[2rem] text-custom-gray max-w-[1000px] mx-auto lg:text-[4vw] lg:w-[1000px] lg:p-0">
           <strong className="text-custom-black">Retina 머그</strong>
           <br />
           아이디어를 광활하게 펼칠
           <br />
           아름답고 부드러운 음료공간
         </p>
-        <p className="px-[1rem] text-[1.2rem] text-custom-gray max-w-[1000px] mx-auto lg:text-[2rem]">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Laboriosam
-          nobis asperiores, consequuntur incidunt veritatis dolore fuga cum
-          aliquam tenetur tempore dignissimos dolores ratione neque placeat
-          quod, atque iusto praesentium doloremque?
+
+        <canvas
+          ref={canvasRef3}
+          className="image-blend-canvas"
+          width={1920}
+          height={1080}
+        ></canvas>
+
+        <p
+          ref={canvasCaptionRef}
+          className="px-[1rem] text-[1.2rem] text-custom-gray max-w-[1000px] mx-auto mt-[-8em] lg:text-[2rem]"
+        >
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam
+          assumenda perferendis ullam est quisquam numquam, consequuntur non
+          excepturi dolores cum voluptatem magni quaerat quod accusantium,
+          mollitia voluptatibus fuga quia nemo harum nam explicabo libero aut
+          cumque. Qui, eos! Fuga esse ipsa neque reprehenderit voluptatem ex
+          laudantium, aliquam est aspernatur quae aut reiciendis hic sit.
+          Repellat officiis ea quod veniam ex! Quisquam laboriosam omnis
+          aspernatur et a vitae rem voluptatum odit consequuntur ullam nesciunt,
+          quas dolorum dolor provident possimus tempore harum earum nostrum
+          atque dolorem quos amet? Repellat quae beatae corporis saepe sequi,
+          suscipit sapiente nesciunt quam. Culpa fugiat officiis fugit quos
+          error laboriosam, hic reiciendis quam ipsum necessitatibus
+          voluptatibus cupiditate reprehenderit. Aut quibusdam veritatis in ut
+          at et! Tempora aspernatur quod temporibus rem natus dolor velit
+          officiis inventore dignissimos! Laborum sint at dolores excepturi
+          aspernatur obcaecati incidunt similique temporibus ex, molestiae,
+          ratione suscipit itaque voluptatum, repellendus quidem magni molestias
+          beatae officia. Quas, aperiam minus, reprehenderit tempore placeat
+          officiis deserunt veritatis porro deleniti facilis ad voluptas
+          suscipit blanditiis! Officia, suscipit. Autem nemo ex molestias beatae
+          eveniet ab voluptatem praesentium, vero totam at amet atque harum
+          quidem qui rerum accusamus fugit eligendi dolorum possimus in porro
         </p>
       </section>
       <footer className="flex items-center justify-center h-[7rem] bg-orange-400 text-white">
@@ -402,3 +765,5 @@ export default function App() {
     </div>
   );
 }
+
+export default memo(App);
