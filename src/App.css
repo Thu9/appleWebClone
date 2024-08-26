@@ -24,6 +24,7 @@
 #show-scene-2 #scrollSection2 .sticky-elem,
 #show-scene-3 #scrollSection3 .sticky-elem {
   display: block;
+  will-change: transform, opacity;
 }
 
 .image-blend-canvas.sticky {
@@ -35,4 +36,44 @@
   top: 0;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: saturate(180%) blur(15px);
+}
+
+@keyframes loading-circle-animation {
+  0% {
+    stroke-dashoffset: 157;
+  }
+  75% {
+    stroke-dashoffset: -147;
+  }
+  100% {
+    stroke-dashoffset: -157;
+  }
+}
+
+@keyframes loading-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.before-load {
+  overflow: hidden;
+}
+
+.before-load .containers {
+  display: none;
+}
+
+.loading-circle {
+  animation: loading-spin 3s infinite;
+}
+
+.loading-circle circle {
+  stroke-dasharray: 157;
+  stroke-dashoffset: 0;
+  animation: loading-circle-animation 1s infinite;
+}
+
+.scroll-effect-end .sticky-elem {
+  display: none !important;
 }

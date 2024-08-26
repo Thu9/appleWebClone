@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef } from "react";
 import { sceneInfo } from "./Animation";
 import "./App.css";
+import Loading from "./components/Loading";
 
 function App() {
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -27,7 +28,7 @@ function App() {
   useEffect(() => {
     setLayout();
     setCanvasImages();
-    scrollTo({ top: 0 });
+    // scrollTo({ top: 0 });
   }, []);
 
   const setCanvasImages = () => {
@@ -125,11 +126,24 @@ function App() {
     }
 
     if (
+      delayedYOffset <
+      prevScrollHeight + sceneInfo[currentScene].scrollHeight
+    ) {
+      document.body.classList.remove("scroll-effect-end");
+    }
+
+    if (
       delayedYOffset >
       prevScrollHeight + sceneInfo[currentScene].scrollHeight
     ) {
       enterNewScene = true;
-      currentScene++;
+
+      if (currentScene === sceneInfo.length - 1) {
+        document.body.classList.add("scroll-effect-end");
+      }
+
+      if (currentScene < sceneInfo.length - 1) currentScene++;
+
       sceneRef.current?.setAttribute("id", `show-scene-${currentScene}`);
       return;
     }
@@ -577,219 +591,273 @@ function App() {
     }
   };
 
-  window.addEventListener("scroll", () => {
-    yOffset = window.scrollY;
-    scrollLoop();
-    checkMenu();
-    if (!rafState) {
-      rafId = requestAnimationFrame(loop);
-      rafState = true;
-    }
-  });
-  window.addEventListener("resize", () => {
-    if (window.innerWidth > 600) {
-      setLayout();
-    }
-    sceneInfo[3].values.rectStartY = 0;
-  });
   window.addEventListener("load", () => {
+    document.body.classList.remove("before-load");
     setLayout();
-  });
 
-  window.addEventListener("orientationchange", () => setLayout());
+    //중간 새로고침 스크롤
+    let tempYOffset = yOffset;
+    let tempScrollCount = 0;
+    if (tempYOffset > 0) {
+      let siId = setInterval(() => {
+        scrollTo(0, tempYOffset);
+        tempYOffset += 5;
+
+        if (tempScrollCount > 20) {
+          clearInterval(siId);
+        }
+        tempScrollCount++;
+      }, 20);
+    }
+
+    window.addEventListener("scroll", () => {
+      yOffset = window.scrollY;
+      scrollLoop();
+      checkMenu();
+      if (!rafState) {
+        rafId = requestAnimationFrame(loop);
+        rafState = true;
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 900) {
+        location.reload();
+        // setLayout();
+        // sceneInfo[3].values.rectStartY = 0;
+      }
+    });
+
+    window.addEventListener("orientationchange", () => {
+      scrollTo(0, 0);
+      setTimeout(() => {
+        location.reload();
+      }, 500);
+    });
+  });
 
   return (
-    <div ref={sceneRef}>
-      {/* <nav>
-        <div className="absolute top-0 left-0 w-full h-[48px] border-b-[1px] border-black text-center content-center text-[24px] font-semibold z-10">
-          Header
-        </div>
-      </nav> */}
-      <nav className="absolute top-0 left-0 z-10 w-full px-[1rem] h-[44px]">
-        <div className="flex items-center max-w-[1000px] h-full mx-auto justify-between">
-          <a href="#" className="global-nav-item">
-            Rooms
-          </a>
-          <a href="#" className="global-nav-item">
-            Ideas
-          </a>
-          <a href="#" className="global-nav-item">
-            Stores
-          </a>
-          <a href="#" className="global-nav-item">
-            Contact
-          </a>
-        </div>
-      </nav>
-      <nav className="local-nav absolute top-[45px] left-0 z-[11] w-full h-[52px] px-[1rem] border-b-[1px] border-[#ddd]">
-        <div className="flex items-center max-w-[1000px] h-full mx-auto text-[0.8rem]">
-          <a href="#" className="mr-auto text-[1.4rem] font-bold">
+    <>
+      <Loading />
+      <div ref={sceneRef} className="containers">
+        <nav className="absolute top-0 left-0 z-10 w-full px-[1rem] h-[44px]">
+          <div className="flex items-center max-w-[1000px] h-full mx-auto justify-between">
+            <a href="#" className="global-nav-item">
+              Rooms
+            </a>
+            <a href="#" className="global-nav-item">
+              Ideas
+            </a>
+            <a href="#" className="global-nav-item">
+              Stores
+            </a>
+            <a href="#" className="global-nav-item">
+              Contact
+            </a>
+          </div>
+        </nav>
+        <nav className="local-nav absolute top-[45px] left-0 z-[11] w-full h-[52px] px-[1rem] border-b-[1px] border-[#ddd]">
+          <div className="flex items-center max-w-[1000px] h-full mx-auto text-[0.8rem]">
+            <a href="#" className="mr-auto text-[1.4rem] font-bold">
+              AirMug Pro
+            </a>
+            <a href="#" className="ml-[2em]">
+              개요
+            </a>
+            <a href="#" className="ml-[2em]">
+              제품사양
+            </a>
+            <a href="#" className="ml-[2em]">
+              구입하기
+            </a>
+          </div>
+        </nav>
+        <section id="scrollSection0" ref={scrollSection0} className="pt-[50vh]">
+          <h1 className="text-[4rem] text-center lg:text-[9vw] font-bold relative z-[5] top-[-10vh]">
             AirMug Pro
-          </a>
-          <a href="#" className="ml-[2em]">
-            개요
-          </a>
-          <a href="#" className="ml-[2em]">
-            제품사양
-          </a>
-          <a href="#" className="ml-[2em]">
-            구입하기
-          </a>
-        </div>
-      </nav>
-      <section id="scrollSection0" ref={scrollSection0} className="pt-[50vh]">
-        <h1 className="text-[4rem] text-center lg:text-[9vw] font-bold relative z-[5] top-[-10vh]">
-          AirMug Pro
-        </h1>
-        <div className="sticky-elem top-0 h-full">
-          <canvas
-            ref={canvasRef0}
-            width={1920}
-            height={1080}
-            className="absolute top-1/2 left-1/2"
-          />
-        </div>
-        <div className="sticky-elem main-message a lg:text-[4vw]">
-          <p className="font-bold text-center leading-[1.2]">
-            온전히 빠져들게 하는
-            <br />
-            최고급 세라믹
-          </p>
-        </div>
-        <div className="sticky-elem main-message b lg:text-[4vw]">
-          <p className="font-bold text-center leading-[1.2]">
-            주변 맛을 느끼게 해주는
-            <br />
-            주변 맛 허용 모드
-          </p>
-        </div>
-        <div className="sticky-elem main-message c lg:text-[4vw]">
-          <p className="font-bold text-center leading-[1.2]">
-            온종일 편안한
-            <br />
-            맞춤형 손잡이
-          </p>
-        </div>
-        <div className="sticky-elem main-message d lg:text-[4vw]">
-          <p className="font-bold text-center leading-[1.2]">
-            새롭게 입가를
-            <br />
-            찾아온 매혹
-          </p>
-        </div>
-      </section>
+          </h1>
+          <div className="sticky-elem top-0 h-full">
+            <canvas
+              ref={canvasRef0}
+              width={1920}
+              height={1080}
+              className="absolute top-1/2 left-1/2"
+            />
+          </div>
+          <div className="sticky-elem main-message a lg:text-[4vw]">
+            <p className="font-bold text-center leading-[1.2]">
+              온전히 빠져들게 하는
+              <br />
+              최고급 세라믹
+            </p>
+          </div>
+          <div className="sticky-elem main-message b lg:text-[4vw]">
+            <p className="font-bold text-center leading-[1.2]">
+              주변 맛을 느끼게 해주는
+              <br />
+              주변 맛 허용 모드
+            </p>
+          </div>
+          <div className="sticky-elem main-message c lg:text-[4vw]">
+            <p className="font-bold text-center leading-[1.2]">
+              온종일 편안한
+              <br />
+              맞춤형 손잡이
+            </p>
+          </div>
+          <div className="sticky-elem main-message d lg:text-[4vw]">
+            <p className="font-bold text-center leading-[1.2]">
+              새롭게 입가를
+              <br />
+              찾아온 매혹
+            </p>
+          </div>
+        </section>
 
-      <section id="scrollSection1" ref={scrollSection1} className="pt-[50vh]">
-        <p className="text-[1.2rem] text-custom-gray px-[1rem] max-w-[1000px] mx-auto lg:text-[2rem]">
-          <strong className="float-left mr-[0.2em] text-[3rem] text-custom-black lg:text-[6rem]">
-            보통 스크롤 영역
-          </strong>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Repellendus
-          accusamus magni neque quam officiis voluptatibus quasi, minus ab natus
-          repudiandae exercitationem consectetur consequuntur illo adipisci
-          nostrum laboriosam. Nulla pariatur, consequatur iusto animi quidem
-          itaque ea autem obcaecati? Accusantium optio ab totam magni nobis
-          dolor quibusdam quidem fugiat fugit, consequuntur architecto
-          doloremque pariatur tempore, eaque saepe porro perspiciatis nesciunt
-          quod eos sapiente! Tenetur, eum placeat dignissimos saepe quod ratione
-          mollitia quae ut itaque voluptas officia, illum quibusdam? Eos aperiam
-          dicta harum veniam ea nobis laboriosam amet incidunt voluptates quas
-          magni consequatur est labore dolorem dolores ipsam consequuntur iusto,
-          suscipit iste, fugit optio. Eaque eveniet, officiis ullam quod
-          obcaecati nemo id, voluptates vel minima hic quasi, quibusdam iusto
-          rem soluta a illum quis dignissimos pariatur asperiores minus facilis?
-          Culpa laborum dolorum, expedita facilis totam dignissimos libero, unde
-          id perspiciatis autem deleniti cum, vero odio quae fugiat quidem
-          reprehenderit? A saepe eaque velit!
-        </p>
-      </section>
-      <section id="scrollSection2" ref={scrollSection2} className="pt-[50vh]">
-        <div className="sticky-elem top-0 h-full">
-          <canvas
-            ref={canvasRef2}
-            width={1920}
-            height={1080}
-            className="absolute top-1/2 left-1/2"
-          />
-        </div>
-        <div className="a sticky-elem main-message text-[3.5rem] lg:text-[6vw]">
-          <p className="font-bold text-center leading-[1.2]">
-            <small className="block mb-[0.5em] text-[1.2rem] lg:text-[1.5vw]">
-              편안한 촉감
-            </small>
-            입과 하나 되다
+        <section id="scrollSection1" ref={scrollSection1} className="pt-[50vh]">
+          <p className="text-[1.2rem] text-custom-gray px-[1rem] max-w-[1000px] mx-auto lg:text-[2rem]">
+            <strong className="float-left mr-[0.2em] text-[3rem] text-custom-black lg:text-[6rem]">
+              보통 스크롤 영역
+            </strong>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+            Repellendus accusamus magni neque quam officiis voluptatibus quasi,
+            minus ab natus repudiandae exercitationem consectetur consequuntur
+            illo adipisci nostrum laboriosam. Nulla pariatur, consequatur iusto
+            animi quidem itaque ea autem obcaecati? Accusantium optio ab totam
+            magni nobis dolor quibusdam quidem fugiat fugit, consequuntur
+            architecto doloremque pariatur tempore, eaque saepe porro
+            perspiciatis nesciunt quod eos sapiente! Tenetur, eum placeat
+            dignissimos saepe quod ratione mollitia quae ut itaque voluptas
+            officia, illum quibusdam? Eos aperiam dicta harum veniam ea nobis
+            laboriosam amet incidunt voluptates quas magni consequatur est
+            labore dolorem dolores ipsam consequuntur iusto, suscipit iste,
+            fugit optio. Eaque eveniet, officiis ullam quod obcaecati nemo id,
+            voluptates vel minima hic quasi, quibusdam iusto rem soluta a illum
+            quis dignissimos pariatur asperiores minus facilis? Culpa laborum
+            dolorum, expedita facilis totam dignissimos libero, unde id
+            perspiciatis autem deleniti cum, vero odio quae fugiat quidem
+            reprehenderit? A saepe eaque velit!
           </p>
-        </div>
-        <div className="b sticky-elem !w-[50%] font-bold top-[0%] left-[40%] lg:!w-[20%] lg:top-[20%] lg:left-[53%] opacity-0">
-          <p>
-            편안한 목넘김을 완성하는 디테일한 여러 구성 요소들, 우리는 이를
-            하나하나 새롭게 살피고 재구성하는 과정을 거쳐 새로운 수준의 머그,
-            AirMug Pro를 만들었습니다. 입에 뭔가 댔다는 감각은 어느새 사라지고
-            오롯이 당신과 음료만 남게 되죠.
-          </p>
-          <div className="pin w-[1px] h-[100px] bg-custom-black"></div>
-        </div>
-        <div className="c sticky-elem !w-[50%] font-bold top-[15%] left-[45%] lg:!w-[20%] lg:left-[55%] opacity-0">
-          <p>
-            디자인 앤 퀄리티 오브 스웨덴,
-            <br />
-            메이드 인 차이나
-          </p>
-          <div className="pin w-[1px] h-[100px] bg-custom-black"></div>
-        </div>
-      </section>
-      <section
-        id="scrollSection3"
-        ref={scrollSection3}
-        className="pt-[50vh] flex flex-col items-center relative"
-      >
-        <p className="px-[1rem] text-[2rem] text-custom-gray max-w-[1000px] mx-auto lg:text-[4vw] lg:w-[1000px] lg:p-0">
-          <strong className="text-custom-black">Retina 머그</strong>
-          <br />
-          아이디어를 광활하게 펼칠
-          <br />
-          아름답고 부드러운 음료공간
-        </p>
-
-        <canvas
-          ref={canvasRef3}
-          className="image-blend-canvas"
-          width={1920}
-          height={1080}
-        ></canvas>
-
-        <p
-          ref={canvasCaptionRef}
-          className="px-[1rem] text-[1.2rem] text-custom-gray max-w-[1000px] mx-auto mt-[-8em] lg:text-[2rem]"
+        </section>
+        <section id="scrollSection2" ref={scrollSection2} className="pt-[50vh]">
+          <div className="sticky-elem top-0 h-full">
+            <canvas
+              ref={canvasRef2}
+              width={1920}
+              height={1080}
+              className="absolute top-1/2 left-1/2"
+            />
+          </div>
+          <div className="a sticky-elem main-message text-[3.5rem] lg:text-[6vw]">
+            <p className="font-bold text-center leading-[1.2]">
+              <small className="block mb-[0.5em] text-[1.2rem] lg:text-[1.5vw]">
+                편안한 촉감
+              </small>
+              입과 하나 되다
+            </p>
+          </div>
+          <div className="b sticky-elem !w-[50%] font-bold top-[0%] left-[40%] lg:!w-[20%] lg:top-[20%] lg:left-[53%] opacity-0">
+            <p>
+              편안한 목넘김을 완성하는 디테일한 여러 구성 요소들, 우리는 이를
+              하나하나 새롭게 살피고 재구성하는 과정을 거쳐 새로운 수준의 머그,
+              AirMug Pro를 만들었습니다. 입에 뭔가 댔다는 감각은 어느새 사라지고
+              오롯이 당신과 음료만 남게 되죠.
+            </p>
+            <div className="pin w-[1px] h-[100px] bg-custom-black"></div>
+          </div>
+          <div className="c sticky-elem !w-[50%] font-bold top-[15%] left-[45%] lg:!w-[20%] lg:left-[55%] opacity-0">
+            <p>
+              디자인 앤 퀄리티 오브 스웨덴,
+              <br />
+              메이드 인 차이나
+            </p>
+            <div className="pin w-[1px] h-[100px] bg-custom-black"></div>
+          </div>
+        </section>
+        <section
+          id="scrollSection3"
+          ref={scrollSection3}
+          className="pt-[50vh] flex flex-col items-center relative"
         >
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam
-          assumenda perferendis ullam est quisquam numquam, consequuntur non
-          excepturi dolores cum voluptatem magni quaerat quod accusantium,
-          mollitia voluptatibus fuga quia nemo harum nam explicabo libero aut
-          cumque. Qui, eos! Fuga esse ipsa neque reprehenderit voluptatem ex
-          laudantium, aliquam est aspernatur quae aut reiciendis hic sit.
-          Repellat officiis ea quod veniam ex! Quisquam laboriosam omnis
-          aspernatur et a vitae rem voluptatum odit consequuntur ullam nesciunt,
-          quas dolorum dolor provident possimus tempore harum earum nostrum
-          atque dolorem quos amet? Repellat quae beatae corporis saepe sequi,
-          suscipit sapiente nesciunt quam. Culpa fugiat officiis fugit quos
-          error laboriosam, hic reiciendis quam ipsum necessitatibus
-          voluptatibus cupiditate reprehenderit. Aut quibusdam veritatis in ut
-          at et! Tempora aspernatur quod temporibus rem natus dolor velit
-          officiis inventore dignissimos! Laborum sint at dolores excepturi
-          aspernatur obcaecati incidunt similique temporibus ex, molestiae,
-          ratione suscipit itaque voluptatum, repellendus quidem magni molestias
-          beatae officia. Quas, aperiam minus, reprehenderit tempore placeat
-          officiis deserunt veritatis porro deleniti facilis ad voluptas
-          suscipit blanditiis! Officia, suscipit. Autem nemo ex molestias beatae
-          eveniet ab voluptatem praesentium, vero totam at amet atque harum
-          quidem qui rerum accusamus fugit eligendi dolorum possimus in porro
-        </p>
-      </section>
-      <footer className="flex items-center justify-center h-[7rem] bg-orange-400 text-white">
-        20240719
-      </footer>
-    </div>
+          <p className="px-[1rem] text-[2rem] text-custom-gray max-w-[1000px] mx-auto lg:text-[4vw] lg:w-[1000px] lg:p-0">
+            <strong className="text-custom-black">Retina 머그</strong>
+            <br />
+            아이디어를 광활하게 펼칠
+            <br />
+            아름답고 부드러운 음료공간
+          </p>
+
+          <canvas
+            ref={canvasRef3}
+            className="image-blend-canvas"
+            width={1920}
+            height={1080}
+          ></canvas>
+
+          <p
+            ref={canvasCaptionRef}
+            className="px-[1rem] text-[1.2rem] text-custom-gray max-w-[1000px] mx-auto mt-[-8em] lg:text-[2rem]"
+          >
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam
+            assumenda perferendis ullam est quisquam numquam, consequuntur non
+            excepturi dolores cum voluptatem magni quaerat quod accusantium,
+            mollitia voluptatibus fuga quia nemo harum nam explicabo libero aut
+            cumque. Qui, eos! Fuga esse ipsa neque reprehenderit voluptatem ex
+            laudantium, aliquam est aspernatur quae aut reiciendis hic sit.
+            Repellat officiis ea quod veniam ex! Quisquam laboriosam omnis
+            aspernatur et a vitae rem voluptatum odit consequuntur ullam
+            nesciunt, quas dolorum dolor provident possimus tempore harum earum
+            nostrum atque dolorem quos amet? Repellat quae beatae corporis saepe
+            sequi, suscipit sapiente nesciunt quam. Culpa fugiat officiis fugit
+            quos error laboriosam, hic reiciendis quam ipsum necessitatibus
+            voluptatibus cupiditate reprehenderit. Aut quibusdam veritatis in ut
+            at et! Tempora aspernatur quod temporibus rem natus dolor velit
+            officiis inventore dignissimos! Laborum sint at dolores excepturi
+            aspernatur obcaecati incidunt similique temporibus ex, molestiae,
+            ratione suscipit itaque voluptatum, repellendus quidem magni
+            molestias beatae officia. Quas, aperiam minus, reprehenderit tempore
+            placeat officiis deserunt veritatis porro deleniti facilis ad
+            voluptas suscipit blanditiis! Officia, suscipit. Autem nemo ex
+            molestias beatae eveniet ab voluptatem praesentium, vero totam at
+            amet atque harum quidem qui rerum accusamus fugit eligendi dolorum
+            possimus in porro
+          </p>
+        </section>
+        <section className="mb-[10rem]">
+          <p className="px-[1rem] text-[2rem] text-custom-gray max-w-[1000px] mx-auto lg:text-[4vw] lg:w-[1000px] lg:p-0">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae
+            nihil pariatur unde sit, aliquid veniam blanditiis nobis? Nesciunt
+            enim aut iste assumenda alias facilis sunt earum, nostrum fugit?
+            Nesciunt odio necessitatibus quia a optio beatae quas quam earum
+            blanditiis libero perspiciatis tempore ex fuga, totam quisquam,
+            similique, qui quibusdam velit. Ullam quibusdam quas ad facere, quos
+            iusto maxime culpa quae ratione quo ipsa eaque velit placeat aliquam
+            odit tenetur ipsum nihil nesciunt porro iure in, sapiente sit
+            necessitatibus adipisci? Nostrum et recusandae aliquid numquam at
+            error ipsam culpa voluptates dolore incidunt ad ratione sit enim
+            cupiditate, impedit odio rerum assumenda.
+          </p>
+        </section>
+        <section className="mb-[10rem]">
+          <p className="px-[1rem] text-[2rem] text-custom-gray max-w-[1000px] mx-auto lg:text-[4vw] lg:w-[1000px] lg:p-0">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae
+            nihil pariatur unde sit, aliquid veniam blanditiis nobis? Nesciunt
+            enim aut iste assumenda alias facilis sunt earum, nostrum fugit?
+            Nesciunt odio necessitatibus quia a optio beatae quas quam earum
+            blanditiis libero perspiciatis tempore ex fuga, totam quisquam,
+            similique, qui quibusdam velit. Ullam quibusdam quas ad facere, quos
+            iusto maxime culpa quae ratione quo ipsa eaque velit placeat aliquam
+            odit tenetur ipsum nihil nesciunt porro iure in, sapiente sit
+            necessitatibus adipisci? Nostrum et recusandae aliquid numquam at
+            error ipsam culpa voluptates dolore incidunt ad ratione sit enim
+            cupiditate, impedit odio rerum assumenda.
+          </p>
+        </section>
+        <footer className="flex items-center justify-center h-[7rem] bg-orange-400 text-white">
+          20240719
+        </footer>
+      </div>
+    </>
   );
 }
 
