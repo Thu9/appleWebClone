@@ -18,6 +18,12 @@ function App() {
   let currentScene = 0;
   let enterNewScene = false;
 
+  //scroll 가속도
+  let acc = 0.1;
+  let delayedYOffset = 0;
+  let rafId = 0;
+  let rafState = false;
+
   useEffect(() => {
     setLayout();
     setCanvasImages();
@@ -118,14 +124,17 @@ function App() {
       prevScrollHeight += sceneInfo[i].scrollHeight;
     }
 
-    if (yOffset > prevScrollHeight + sceneInfo[currentScene].scrollHeight) {
+    if (
+      delayedYOffset >
+      prevScrollHeight + sceneInfo[currentScene].scrollHeight
+    ) {
       enterNewScene = true;
       currentScene++;
       sceneRef.current?.setAttribute("id", `show-scene-${currentScene}`);
       return;
     }
 
-    if (yOffset < prevScrollHeight) {
+    if (delayedYOffset < prevScrollHeight) {
       enterNewScene = true;
       if (currentScene === 0) return;
       currentScene--;
@@ -138,11 +147,20 @@ function App() {
   };
 
   const loop = () => {
+    delayedYOffset = delayedYOffset + (yOffset - delayedYOffset) * acc;
+
+    rafId = requestAnimationFrame(loop);
+
+    if (Math.abs(yOffset - delayedYOffset) < 1) {
+      cancelAnimationFrame(rafId);
+      rafState = false;
+    }
+
     if (!enterNewScene) {
       if (currentScene === 0 || currentScene === 2) {
         const values = sceneInfo[currentScene].values;
         const objs = sceneInfo[currentScene].objs;
-        let currentYOffset = yOffset - prevScrollHeight;
+        let currentYOffset = delayedYOffset - prevScrollHeight;
         let sequence = Math.round(
           calcValues(values.imageSequence, currentYOffset)
         );
@@ -377,7 +395,6 @@ function App() {
           if (!canvasRef3.current) return;
 
           const values = sceneInfo[3].values!;
-          const scrollHeight = sceneInfo[3].scrollHeight;
           const widthRatio = window.innerWidth / canvasRef3.current.width;
           const heightRatio = window.innerHeight / canvasRef3.current.height;
           let canvasScaleRatio;
@@ -563,13 +580,23 @@ function App() {
   window.addEventListener("scroll", () => {
     yOffset = window.scrollY;
     scrollLoop();
-    loop();
     checkMenu();
+    if (!rafState) {
+      rafId = requestAnimationFrame(loop);
+      rafState = true;
+    }
   });
-  window.addEventListener("resize", setLayout);
-  // window.addEventListener("load", () => {
-  //   setLayout();
-  // });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 600) {
+      setLayout();
+    }
+    sceneInfo[3].values.rectStartY = 0;
+  });
+  window.addEventListener("load", () => {
+    setLayout();
+  });
+
+  window.addEventListener("orientationchange", () => setLayout());
 
   return (
     <div ref={sceneRef}>
