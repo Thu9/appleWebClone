@@ -25,3 +25,7 @@
   stroke-dashoffset: 0;
   animation: loading-circle-animation 1s infinite;
 }
+
+.before-load {
+  overflow: hidden;
+}

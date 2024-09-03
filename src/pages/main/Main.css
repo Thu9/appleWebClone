@@ -38,10 +38,6 @@
   backdrop-filter: saturate(180%) blur(15px);
 }
 
-.before-load {
-  overflow: hidden;
-}
-
 .before-load .containers {
   display: none;
 }

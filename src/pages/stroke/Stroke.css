@@ -1,0 +1,18 @@
+#scroll-section-0 .sticky-elem {
+  display: none;
+  position: fixed;
+}
+#show-scene-0 #scroll-section-0 .sticky-elem {
+  display: block;
+  will-change: transform, opacity;
+}
+
+.ribbon-path path {
+  fill: none;
+  stroke: #ff0044;
+  stroke-width: 62;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1401, 1401;
+  stroke-dashoffset: 1401;
+}

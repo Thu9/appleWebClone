@@ -6,9 +6,9 @@ import NotFound from "../pages/error";
 export const PageRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Main />}></Route>
-      <Route path="stroke" element={<Stroke />}></Route>
-      <Route path="*" element={<NotFound />}></Route>
+      <Route path="/" element={<Main />} />
+      <Route path="/stroke" element={<Stroke />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

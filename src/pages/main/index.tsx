@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { sceneInfo } from "../../Animation";
+import { sceneInfo } from "../../animation/Animation";
 import Loading from "../../components/Loading";
-import "./index.css";
+import "./Main.css";
 
 export default function Main() {
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -205,7 +205,7 @@ export default function Main() {
     let rv;
     const scrollHeight = sceneInfo[currentScene].scrollHeight;
     const scrollRatio = currentYOffset / scrollHeight;
-
+    console.log(values);
     if (values.length === 3) {
       const partScrollStart = values[2].start * scrollHeight;
       const partScrollEnd = values[2].end * scrollHeight;
@@ -676,7 +676,7 @@ export default function Main() {
           </div>
         </nav>
         <section id="scrollSection0" ref={scrollSection0} className="pt-[50vh]">
-          <h1 className="text-[4rem] text-center lg:text-[9vw] font-bold relative z-[5] top-[-10vh]">
+          <h1 className="font-bold text-[4rem] text-center lg:text-[9vw] relative z-[5] top-[-10vh]">
             AirMug Pro
           </h1>
           <div className="sticky-elem top-0 h-full">

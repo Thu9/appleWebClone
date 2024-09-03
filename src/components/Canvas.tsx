@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { sceneInfo } from "../Animation";
+import { sceneInfo } from "../animation/Animation";
 
 interface CanvasProps {
   section?: number;
