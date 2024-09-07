@@ -11,7 +11,7 @@ export default function Stroke() {
   let enterNewScene = false;
 
   useEffect(() => {
-    setLayout();
+    // setLayout();
   }, []);
 
   const setLayout = () => {
@@ -130,6 +130,8 @@ export default function Stroke() {
         ) as HTMLSpanElement;
 
         if (!messageA) return;
+
+        console.log(currentYOffset);
 
         if (scrollRatio <= 0.25) {
           messageA.style.opacity = calcValues(
@@ -251,7 +253,7 @@ export default function Stroke() {
             data="src/assets/images/pencil-logo.svg"
           ></object>
 
-          <div className="sticky-elem left-0 w-full top-[40vh] text-[2.5rem] lg:text-[4vw] a">
+          <div className="sticky-elem left-0 w-full top-[40vh] text-[2.5rem] lg:text-[4vw] a opacity-0">
             <p className="font-bold text-center leading-[1.2]">여기에</p>
           </div>
 
@@ -265,7 +267,7 @@ export default function Stroke() {
             </svg>
           </span>
 
-          <div className="sticky-elem left-0 w-full top-[40vh] text-[3.5rem] b lg:text-[7vw]">
+          <div className="sticky-elem left-0 w-full top-[40vh] text-[3.5rem] b lg:text-[7vw] opacity-0">
             <p className="font-bold text-center leading-[1.2]">옵션으로</p>
           </div>
 

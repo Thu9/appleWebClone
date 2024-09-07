@@ -205,7 +205,6 @@ export default function Main() {
     let rv;
     const scrollHeight = sceneInfo[currentScene].scrollHeight;
     const scrollRatio = currentYOffset / scrollHeight;
-    console.log(values);
     if (values.length === 3) {
       const partScrollStart = values[2].start * scrollHeight;
       const partScrollEnd = values[2].end * scrollHeight;
